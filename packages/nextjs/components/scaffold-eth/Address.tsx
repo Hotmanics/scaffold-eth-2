@@ -16,6 +16,8 @@ type AddressProps = {
   disableAddressLink?: boolean;
   format?: "short" | "long";
   size?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl";
+  components?: ("icon" | "address" | "copy")[];
+  renderDirection?: "horizontal" | "vertical";
 };
 
 const blockieSizeMap = {
@@ -31,7 +33,14 @@ const blockieSizeMap = {
 /**
  * Displays an address (or ENS) with a Blockie image and option to copy address.
  */
-export const Address = ({ address, disableAddressLink, format, size = "base" }: AddressProps) => {
+export const Address = ({
+  address,
+  disableAddressLink,
+  format,
+  size = "base",
+  components = ["icon", "address", "copy"],
+  renderDirection = "horizontal",
+}: AddressProps) => {
   const [ens, setEns] = useState<string | null>();
   const [ensAvatar, setEnsAvatar] = useState<string | null>();
   const [addressCopied, setAddressCopied] = useState(false);
@@ -85,9 +94,73 @@ export const Address = ({ address, disableAddressLink, format, size = "base" }: 
     displayAddress = checkSumAddress;
   }
 
+  const renderedComponents: JSX.Element[] = [];
+  for (let i = 0; i < components.length; i++) {
+    if (components[i] === "icon") {
+      renderedComponents.push(
+        <div className="flex-shrink-0">
+          <BlockieAvatar
+            address={checkSumAddress}
+            ensImage={ensAvatar}
+            size={(blockieSizeMap[size] * 24) / blockieSizeMap["base"]}
+          />
+        </div>,
+      );
+    } else if (components[i] === "address") {
+      renderedComponents.push(
+        disableAddressLink ? (
+          <span className={`ml-1.5 text-${size} font-normal`}>{displayAddress}</span>
+        ) : targetNetwork.id === hardhat.id ? (
+          <span className={`ml-1.5 text-${size} font-normal`}>
+            <Link href={blockExplorerAddressLink}>{displayAddress}</Link>
+          </span>
+        ) : (
+          <a
+            className={`ml-1.5 text-${size} font-normal`}
+            target="_blank"
+            href={blockExplorerAddressLink}
+            rel="noopener noreferrer"
+          >
+            {displayAddress}
+          </a>
+        ),
+      );
+    } else if (components[i] === "copy") {
+      renderedComponents.push(
+        addressCopied ? (
+          <CheckCircleIcon
+            className="ml-1.5 text-xl font-normal text-sky-600 h-5 w-5 cursor-pointer"
+            aria-hidden="true"
+          />
+        ) : (
+          <CopyToClipboard
+            text={checkSumAddress}
+            onCopy={() => {
+              setAddressCopied(true);
+              setTimeout(() => {
+                setAddressCopied(false);
+              }, 800);
+            }}
+          >
+            <DocumentDuplicateIcon
+              className="ml-1.5 text-xl font-normal text-sky-600 h-5 w-5 cursor-pointer"
+              aria-hidden="true"
+            />
+          </CopyToClipboard>
+        ),
+      );
+    }
+  }
+
+  let renderedDirection;
+  if (renderDirection === "vertical") {
+    renderedDirection = "flex-col";
+  }
+
   return (
-    <div className="flex items-center">
-      <div className="flex-shrink-0">
+    <div className={`flex ${renderedDirection} items-center`}>
+      {renderedComponents}
+      {/* <div className="flex-shrink-0">
         <BlockieAvatar
           address={checkSumAddress}
           ensImage={ensAvatar}
@@ -130,7 +203,7 @@ export const Address = ({ address, disableAddressLink, format, size = "base" }: 
             aria-hidden="true"
           />
         </CopyToClipboard>
-      )}
+      )} */}
     </div>
   );
 };
