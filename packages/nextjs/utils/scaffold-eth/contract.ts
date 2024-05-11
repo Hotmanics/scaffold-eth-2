@@ -179,7 +179,7 @@ export type UseScaffoldReadConfig<
     Omit<UseReadContractParameters, "chainId" | "abi" | "address" | "functionName" | "args">
 >;
 
-export type scaffoldWriteContractVariables<
+export type ScaffoldWriteContractVariables<
   TContractName extends ContractName,
   TFunctionName extends ExtractAbiFunctionNames<ContractAbi<TContractName>, WriteAbiStateMutability>,
 > = IsContractDeclarationMissing<
@@ -197,7 +197,7 @@ export type TransactorFuncOptions = {
   blockConfirmations?: number;
 };
 
-export type scaffoldWriteContractOptions = MutateOptions<
+export type ScaffoldWriteContractOptions = MutateOptions<
   WriteContractReturnType,
   WriteContractErrorType,
   WriteVariables,
@@ -214,8 +214,9 @@ export type UseScaffoldEventConfig<
   >,
 > = {
   contractName: TContractName;
+  eventName: TEventName;
 } & IsContractDeclarationMissing<
-  Omit<UseWatchContractEventParameters, "onLogs" | "address" | "abi"> & {
+  Omit<UseWatchContractEventParameters, "onLogs" | "address" | "abi" | "eventName"> & {
     onLogs: (
       logs: Simplify<
         Omit<Log<bigint, number, any>, "args" | "eventName"> & {
@@ -225,7 +226,7 @@ export type UseScaffoldEventConfig<
       >[],
     ) => void;
   },
-  Omit<UseWatchContractEventParameters<ContractAbi<TContractName>>, "onLogs" | "address" | "abi"> & {
+  Omit<UseWatchContractEventParameters<ContractAbi<TContractName>>, "onLogs" | "address" | "abi" | "eventName"> & {
     onLogs: (
       logs: Simplify<
         Omit<Log<bigint, number, false, TEvent, false, [TEvent], TEventName>, "args"> & {
